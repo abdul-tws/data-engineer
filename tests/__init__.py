@@ -1,6 +1,5 @@
 """
-Fund Position Reconciliation Package
+Test Suite for Refactored Enterprise System
 """
 
-__version__ = "1.0.0"
-__author__ = "Fund Reconciliation Team"
+__version__ = "2.0.0"
