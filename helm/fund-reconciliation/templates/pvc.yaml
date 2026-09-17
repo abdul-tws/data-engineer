@@ -1,0 +1,31 @@
+{{- if .Values.persistence.data.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "fund-reconciliation.fullname" . }}-data
+  labels:
+    {{- include "fund-reconciliation.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.data.accessMode }}
+  storageClassName: {{ .Values.persistence.data.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.data.size }}
+---
+{{- end }}
+{{- if .Values.persistence.output.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "fund-reconciliation.fullname" . }}-output
+  labels:
+    {{- include "fund-reconciliation.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.output.accessMode }}
+  storageClassName: {{ .Values.persistence.output.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.output.size }}
+{{- end }}

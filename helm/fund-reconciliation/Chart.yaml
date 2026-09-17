@@ -1,0 +1,16 @@
+apiVersion: v2
+name: fund-reconciliation
+description: A Helm chart for Fund Reconciliation System
+type: application
+version: 2.0.0
+appVersion: "2.0.0"
+keywords:
+  - fund
+  - reconciliation
+  - finance
+maintainers:
+  - name: Data Engineering Team
+    email: team@example.com
+home: https://github.com/abdul-tws/data-engineer
+sources:
+  - https://github.com/abdul-tws/data-engineer

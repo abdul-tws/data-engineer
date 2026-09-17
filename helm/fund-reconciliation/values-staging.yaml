@@ -1,0 +1,60 @@
+# Staging environment overrides
+global:
+  environment: staging
+  logLevel: INFO
+
+image:
+  tag: "2.0.0"
+
+replicaCount: 2
+
+resources:
+  limits:
+    cpu: 400m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+  hosts:
+    - host: "fund-reconciliation.staging.example.com"
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: fund-reconciliation-staging-tls
+      hosts:
+        - "fund-reconciliation.staging.example.com"
+
+database:
+  enabled: true
+  type: postgresql
+  host: postgres-staging.default.svc.cluster.local
+  ssl: true
+  maxConnections: 15
+
+persistence:
+  enabled: true
+  data:
+    size: 5Gi
+  output:
+    size: 3Gi
+
+monitoring:
+  enabled: true
+
+backup:
+  enabled: true
+  schedule: "0 3 * * *"
+  retention: 14

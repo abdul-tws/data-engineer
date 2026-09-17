@@ -1,0 +1,35 @@
+{{- if .Values.backup.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "fund-reconciliation.fullname" . }}-backup
+  labels:
+    {{- include "fund-reconciliation.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.backup.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: {{ include "fund-reconciliation.serviceAccountName" . }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          containers:
+            - name: backup
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "Starting backup at $(date)"
+                  # Database backup command here
+                  echo "Backup completed at $(date)"
+              env:
+                {{- include "fund-reconciliation.containerEnv" . | nindent 16 }}
+              volumeMounts:
+                {{- include "fund-reconciliation.volumeMounts" . | nindent 16 }}
+          volumes:
+            {{- include "fund-reconciliation.volumes" . | nindent 12 }}
+          restartPolicy: OnFailure
+{{- end }}

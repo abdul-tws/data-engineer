@@ -1,0 +1,44 @@
+# Development environment overrides
+global:
+  environment: development
+  logLevel: DEBUG
+
+image:
+  tag: "latest"
+
+replicaCount: 1
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: "fund-reconciliation.dev.local"
+      paths:
+        - path: /
+          pathType: Prefix
+
+database:
+  enabled: true
+  type: sqlite
+  host: localhost
+  ssl: false
+
+persistence:
+  enabled: false
+
+monitoring:
+  enabled: false
+
+backup:
+  enabled: false

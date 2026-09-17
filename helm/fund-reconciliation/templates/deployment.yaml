@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fund-reconciliation.fullname" . }}
+  labels:
+    {{- include "fund-reconciliation.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "fund-reconciliation.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "fund-reconciliation.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "fund-reconciliation.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      
+      # Init container for migrations
+      {{- if .Values.migration.autoRunMigrations }}
+      initContainers:
+        - name: migrate
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - alembic upgrade head
+          env:
+            {{- include "fund-reconciliation.containerEnv" . | nindent 12 }}
+          volumeMounts:
+            {{- include "fund-reconciliation.volumeMounts" . | nindent 12 }}
+      {{- end }}
+      
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          
+          # Liveness probe
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          
+          # Readiness probe
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          
+          # Resource limits
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          
+          # Environment variables
+          env:
+            {{- include "fund-reconciliation.containerEnv" . | nindent 12 }}
+          
+          # Volume mounts
+          volumeMounts:
+            {{- include "fund-reconciliation.volumeMounts" . | nindent 12 }}
+      
+      # Volumes
+      volumes:
+        {{- include "fund-reconciliation.volumes" . | nindent 8 }}
+      
+      # Node selection
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      
+      # Affinity
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      
+      # Tolerations
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
